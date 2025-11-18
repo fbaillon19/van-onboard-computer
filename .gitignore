@@ -1,0 +1,34 @@
+# Arduino
+*.hex
+*.eep
+*.elf
+*.map
+*.sym
+*.lss
+*.lst
+build/
+*.autosave
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Documentation temporaire
+docs/**/*.tmp
+*.backup
+
+# Logs
+*.log
+logs/
+
+# Secrets (si utilisation future WiFi/API)
+secrets.h
+credentials.h
