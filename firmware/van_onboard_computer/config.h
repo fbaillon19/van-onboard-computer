@@ -1,182 +1,264 @@
 /**
  * @file config.h
- * @brief Configuration générale du système VOBC
+ * @brief Configuration centralisée du système Van Onboard Computer
+ * @author Frédéric BAILLON
  * @version 0.1.0
- * @date $(date +%Y-%m-%d)
+ * @date 2024-11-26
+ * 
+ * @details
+ * Fichier de configuration centralisé contenant :
+ * - Adresses I2C de tous les périphériques
+ * - Pins GPIO utilisées
+ * - Seuils d'alerte (CO, GPL, tensions, températures)
+ * - Intervalles d'acquisition
+ * - Paramètres d'affichage
  */
 
 #ifndef CONFIG_H
 #define CONFIG_H
 
-// ============================================
-// INFORMATIONS SYSTÈME
-// ============================================
-#define VOBC_VERSION "0.1.0"
-#define VOBC_BUILD_DATE __DATE__
-#define VOBC_BUILD_TIME __TIME__
+#include <Arduino.h>
 
 // ============================================
-// CONFIGURATION MATÉRIELLE - PINS
+// VERSION FIRMWARE
 // ============================================
-
-// Bus I2C (pins fixes sur MEGA)
-#define I2C_SDA 20
-#define I2C_SCL 21
-
-// Capteurs analogiques
-#define PIN_MQ7_CO A0        // Détecteur CO (MQ-7)
-#define PIN_MQ2_GAS A1       // Détecteur gaz GPL (MQ-2)
-
-// Capteurs digitaux
-#define PIN_DS18B20 12       // Température extérieure (One-Wire)
-#define PIN_REED_DOOR 2      // Reed switch porte (avec interruption)
-#define PIN_PIR_MOTION 7     // PIR détecteur mouvement (Phase 2)
-
-// Capteurs ultrasons (Phase 2)
-#define PIN_US1_TRIG 8       // Ultrason 1 - Trigger (eau propre)
-#define PIN_US1_ECHO 9       // Ultrason 1 - Echo
-#define PIN_US2_TRIG 10      // Ultrason 2 - Trigger (eaux grises)
-#define PIN_US2_ECHO 11      // Ultrason 2 - Echo
-
-// Actionneurs (alertes)
-#define PIN_BUZZER 3         // Buzzer piézo (PWM)
-#define PIN_LED_R 4          // LED RGB - Rouge (PWM)
-#define PIN_LED_G 5          // LED RGB - Verte (PWM)
-#define PIN_LED_B 6          // LED RGB - Bleue (PWM)
-
-// Encodeur rotatif
-#define PIN_ENCODER_CLK 18   // CLK (avec interruption)
-#define PIN_ENCODER_DT 19    // DT (avec interruption)
-#define PIN_ENCODER_SW 17    // SW - Bouton poussoir
-
-// Module relais (Phase 2)
-#define PIN_RELAY_1 22       // Relais 1 - Ventilateur 1
-#define PIN_RELAY_2 23       // Relais 2 - Ventilateur 2
-#define PIN_RELAY_3 24       // Relais 3 - Éclairage auto
-#define PIN_RELAY_4 25       // Relais 4 - Chauffage/Douche
-
-// Bus SPI - Module SD (Phase 3)
-#define PIN_SD_CS 53         // Chip Select SD
-// MOSI: 51, MISO: 50, SCK: 52 (pins fixes MEGA)
+#define FIRMWARE_VERSION        "1.0.0"
+#define FIRMWARE_DATE           "2024-11-26"
 
 // ============================================
-// ADRESSES I2C
+// CONFIGURATION MATÉRIELLE - ADRESSES I2C
 // ============================================
-#define I2C_ADDR_BME280    0x76  // ou 0x77 selon module
-#define I2C_ADDR_INA226_BAT 0x40 // Batterie principale
-#define I2C_ADDR_INA226_SOL 0x41 // Panneaux solaires (Phase 2)
-#define I2C_ADDR_MPU6050   0x68
-#define I2C_ADDR_HMC5883L  0x1E  // Boussole (Phase 3)
-#define I2C_ADDR_RTC       0x68  // RTC DS3231 (Phase 3) - conflit avec MPU6050!
-#define I2C_ADDR_LCD       0x27  // ou 0x3F selon module
+#define I2C_BME280              0x76    ///< Capteur environnemental intérieur
+#define I2C_MPU6050             0x68    ///< Accéléromètre/gyroscope
+#define I2C_INA226_12V          0x40    ///< Surveillance rail 12V
+#define I2C_INA226_5V           0x41    ///< Surveillance rail 5V
+#define I2C_LCD                 0x27    ///< Écran LCD 20x4
 
 // ============================================
-// CONFIGURATION CAPTEURS
+// CONFIGURATION MATÉRIELLE - PINS GPIO
 // ============================================
+// Capteurs analogiques/numériques
+#define PIN_MQ7                 A0      ///< Capteur CO (analogique)
+#define PIN_MQ2                 A1      ///< Capteur GPL/fumée (analogique)
+#define PIN_DS18B20             22      ///< Capteur température extérieure (OneWire)
 
-// BME280
-#define BME280_ENABLED true
-#define BME280_SAMPLE_INTERVAL 5000  // ms (5 secondes)
+// Encodeur rotatif KY040
+#define PIN_ENCODER_CLK         2       ///< Encodeur CLK (interruption)
+#define PIN_ENCODER_DT          3       ///< Encodeur DT (interruption)
+#define PIN_ENCODER_SW          4       ///< Encodeur bouton poussoir
 
-// INA226
-#define INA226_ENABLED true
-#define INA226_SAMPLE_INTERVAL 1000   // ms (1 seconde)
-#define INA226_SHUNT_RESISTOR 0.1     // Ohms (100 mΩ)
-#define INA226_MAX_CURRENT 20.0       // Ampères
+// Périphériques de sortie
+#define PIN_BUZZER              25      ///< Buzzer piézoélectrique
+#define PIN_WS2812B             6       ///< Bandeau LED WS2812B
 
-// MPU6050
-#define MPU6050_ENABLED true
-#define MPU6050_SAMPLE_INTERVAL 100   // ms (10 Hz)
-#define MPU6050_CALIBRATION_SAMPLES 200
-
-// MQ-7 (CO)
-#define MQ7_ENABLED true
-#define MQ7_SAMPLE_INTERVAL 1000      // ms (1 seconde)
-#define MQ7_WARMUP_TIME 180000        // ms (3 minutes minimum)
-#define MQ7_THRESHOLD_WARNING 400     // Valeur analogique
-#define MQ7_THRESHOLD_CRITICAL 600    // Valeur analogique
-
-// MQ-2 (Gaz GPL)
-#define MQ2_ENABLED true
-#define MQ2_SAMPLE_INTERVAL 1000      // ms (1 seconde)
-#define MQ2_WARMUP_TIME 60000         // ms (1 minute)
-#define MQ2_THRESHOLD_WARNING 400     // Valeur analogique
-#define MQ2_THRESHOLD_CRITICAL 700    // Valeur analogique
-
-// DS18B20
-#define DS18B20_ENABLED true
-#define DS18B20_SAMPLE_INTERVAL 5000  // ms (5 secondes)
-#define DS18B20_RESOLUTION 12         // bits (9-12)
-
-// Reed Switch
-#define REED_ENABLED true
-#define REED_DEBOUNCE_TIME 50         // ms
+// LCD déporté (optionnel, non implémenté v1.0)
+#define PIN_DASHBOARD_TX        18      ///< UART2 TX vers Arduino Nano
+#define PIN_DASHBOARD_RX        19      ///< UART2 RX depuis Arduino Nano
 
 // ============================================
-// SEUILS D'ALERTES
+// CONFIGURATION WS2812B
 // ============================================
+#define LED_COUNT               8       ///< Nombre total de LEDs
+#define LED_BRIGHTNESS          76      ///< Luminosité (0-255), 30% = 76
 
+// Répartition des LEDs
+#define LED_POWER_START         0       ///< LEDs 0-3 : Barre puissance
+#define LED_POWER_COUNT         4
+#define LED_CO                  4       ///< LED 4 : Indicateur CO
+#define LED_GPL                 5       ///< LED 5 : Indicateur GPL
+#define LED_VOLTAGE_12V         6       ///< LED 6 : État 12V
+#define LED_VOLTAGE_5V          7       ///< LED 7 : État 5V
+
+// ============================================
+// SEUILS ALERTES - GAZ DANGEREUX
+// ============================================
+// MQ7 - Monoxyde de carbone (CO)
+#define CO_THRESHOLD_INFO       50      ///< Info : détection faible (ppm)
+#define CO_THRESHOLD_WARNING    200     ///< Warning : attention nécessaire (ppm)
+#define CO_THRESHOLD_DANGER     400     ///< Danger : évacuation immédiate (ppm)
+
+// MQ2 - GPL/Méthane
+#define GPL_THRESHOLD_INFO      500     ///< Info : détection faible (ppm)
+#define GPL_THRESHOLD_WARNING   1000    ///< Warning : attention nécessaire (ppm)
+#define GPL_THRESHOLD_DANGER    3000    ///< Danger : évacuation immédiate (ppm)
+
+// MQ2 - Fumée
+#define SMOKE_THRESHOLD_INFO    1000    ///< Info : détection faible (ppm)
+#define SMOKE_THRESHOLD_WARNING 1500    ///< Warning : attention nécessaire (ppm)
+#define SMOKE_THRESHOLD_DANGER  2000    ///< Danger : évacuation immédiate (ppm)
+
+// ============================================
+// SEUILS ALERTES - ÉLECTRIQUES
+// ============================================
+// Rail 12V (batterie)
+#define VOLTAGE_12V_MIN         10.5    ///< Minimum absolu (décharge profonde)
+#define VOLTAGE_12V_WARNING     11.5    ///< Warning : batterie faible
+#define VOLTAGE_12V_NOMINAL     12.0    ///< Nominal : au repos
+#define VOLTAGE_12V_CHARGING    13.8    ///< En charge (alternateur)
+#define VOLTAGE_12V_MAX         14.5    ///< Maximum admissible
+
+// Rail 5V (électronique)
+#define VOLTAGE_5V_MIN          4.5     ///< Minimum admissible
+#define VOLTAGE_5V_NOMINAL      5.0     ///< Nominal
+#define VOLTAGE_5V_MAX          5.5     ///< Maximum admissible
+
+// Courants maximaux (alertes sur-courant)
+#define CURRENT_12V_MAX         20.0    ///< Courant max rail 12V (A)
+#define CURRENT_5V_MAX          3.0     ///< Courant max rail 5V (A)
+
+// ============================================
+// SEUILS ALERTES - ENVIRONNEMENT
+// ============================================
 // Température
-#define TEMP_INT_MIN_WARNING 10.0     // °C
-#define TEMP_INT_MIN_CRITICAL 5.0     // °C
-#define TEMP_INT_MAX_WARNING 30.0     // °C
-#define TEMP_INT_MAX_CRITICAL 35.0    // °C
+#define TEMP_MIN                -10     ///< Température minimale (°C)
+#define TEMP_COMFORT_MIN        15      ///< Confort minimum (°C)
+#define TEMP_COMFORT_MAX        25      ///< Confort maximum (°C)
+#define TEMP_WARNING            35      ///< Warning : chaleur excessive (°C)
+#define TEMP_MAX                45      ///< Maximum absolu (°C)
 
 // Humidité
-#define HUMIDITY_MAX_WARNING 70.0     // %
-#define HUMIDITY_MAX_CRITICAL 80.0    // %
+#define HUMIDITY_MIN            20      ///< Humidité minimale (%)
+#define HUMIDITY_COMFORT_MIN    30      ///< Confort minimum (%)
+#define HUMIDITY_COMFORT_MAX    60      ///< Confort maximum (%)
+#define HUMIDITY_WARNING        80      ///< Warning : risque condensation (%)
+#define HUMIDITY_MAX            95      ///< Maximum (%)
 
-// Batterie
-#define BATTERY_VOLTAGE_MIN_WARNING 12.0   // V
-#define BATTERY_VOLTAGE_MIN_CRITICAL 11.5  // V
-#define BATTERY_VOLTAGE_MAX_WARNING 14.5   // V (surcharge)
-
-// Horizontalité
-#define TILT_MAX_WARNING 3.0          // degrés
-#define TILT_MAX_CRITICAL 5.0         // degrés
+// Horizontalité (MPU6050)
+#define TILT_WARNING            5.0     ///< Warning : inclinaison notable (°)
+#define TILT_DANGER             15.0    ///< Danger : inclinaison importante (°)
 
 // ============================================
-// CONFIGURATION AFFICHAGE
+// INTERVALLES D'ACQUISITION (ms)
 // ============================================
-#define LCD_ENABLED true
-#define LCD_COLS 20
-#define LCD_ROWS 4
-#define LCD_UPDATE_INTERVAL 2000      // ms (2 secondes)
-#define LCD_BACKLIGHT_TIMEOUT 300000  // ms (5 minutes)
+#define INTERVAL_BME280         10000   ///< 10s - Température/humidité intérieure
+#define INTERVAL_DS18B20        10000   ///< 10s - Température extérieure
+#define INTERVAL_MPU6050        500     ///< 500ms - Horizontalité (temps réel)
+#define INTERVAL_INA226         2000    ///< 2s - Surveillance tensions
+#define INTERVAL_MQ7            2000    ///< 2s - Détection CO
+#define INTERVAL_MQ2            2000    ///< 2s - Détection GPL/fumée
+#define INTERVAL_DISPLAY        100     ///< 100ms - Rafraîchissement LCD
+#define INTERVAL_LEDS           50      ///< 50ms - Rafraîchissement LEDs
 
 // ============================================
-// CONFIGURATION ALERTES
+// TIMING SYSTÈME
 // ============================================
-#define BUZZER_ENABLED true
-#define BUZZER_FREQ_WARNING 2000      // Hz
-#define BUZZER_FREQ_CRITICAL 3000     // Hz
-#define BUZZER_DURATION 200           // ms
-
-#define LED_BRIGHTNESS_NORMAL 128     // 0-255
-#define LED_BRIGHTNESS_ALERT 255      // 0-255
-#define LED_BLINK_INTERVAL 500        // ms
+#define PREHEAT_MQ7_TIME        180000  ///< 3 min - Pré-chauffe MQ7 (ms)
+#define PREHEAT_MQ2_TIME        60000   ///< 1 min - Pré-chauffe MQ2 (ms)
+#define ENCODER_TIMEOUT         300000  ///< 5 min - Retour écran accueil (ms)
+#define ALERT_BLINK_INTERVAL    500     ///< 500ms - Clignotement LED alerte
+#define BUZZER_BEEP_DURATION    100     ///< 100ms - Durée bip court
 
 // ============================================
-// CONFIGURATION SYSTÈME
+// CONFIGURATION INA226
 // ============================================
-#define SERIAL_BAUD_RATE 115200
-#define DEBUG_MODE true               // Afficher logs série
-#define WATCHDOG_ENABLED false        // Watchdog timer (à activer en prod)
-
-// Mode nuit (alertes réduites)
-#define NIGHT_MODE_ENABLED false
-#define NIGHT_MODE_START_HOUR 22      // 22h00
-#define NIGHT_MODE_END_HOUR 7         // 07h00
-
-// Logging SD (Phase 3)
-#define SD_LOGGING_ENABLED false
-#define SD_LOG_INTERVAL 30000         // ms (30 secondes)
+#define SHUNT_12V_RESISTANCE    0.002   ///< 2 mΩ - Résistance shunt 12V
+#define SHUNT_5V_RESISTANCE     0.010   ///< 10 mΩ - Résistance shunt 5V
+#define SHUNT_12V_MAX_CURRENT   40.0    ///< 40A - Courant max mesurable 12V
+#define SHUNT_5V_MAX_CURRENT    8.0     ///< 8A - Courant max mesurable 5V
 
 // ============================================
-// CONSTANTES PHYSIQUES
+// CONFIGURATION ÉCRAN LCD
 // ============================================
-#define GRAVITY 9.81                  // m/s²
-#define DEG_TO_RAD 0.0174533
-#define RAD_TO_DEG 57.2957795
+#define LCD_COLS                20      ///< 20 colonnes
+#define LCD_ROWS                4       ///< 4 lignes
+#define LCD_BACKLIGHT_TIMEOUT   600000  ///< 10 min - Extinction auto (0=désactivé)
+
+// ============================================
+// CONFIGURATION MPU6050
+// ============================================
+#define MPU6050_CALIBRATION_SAMPLES  100  ///< Échantillons pour calibration
+
+// ============================================
+// FONCTIONNALITÉS OPTIONNELLES
+// ============================================
+#define USE_DASHBOARD_LCD       false   ///< LCD déporté (non implémenté v1.0)
+#define USE_SERIAL_DEBUG        true    ///< Sortie debug sur Serial
+#define SERIAL_BAUD_RATE        115200  ///< Vitesse Serial
+
+// ============================================
+// MACROS UTILITAIRES
+// ============================================
+// Macros pour debug conditionnel
+#if USE_SERIAL_DEBUG
+  #define DEBUG_PRINT(x)        Serial.print(x)
+  #define DEBUG_PRINTLN(x)      Serial.println(x)
+  // Fonction helper pour printf-like sur Arduino
+  inline void DEBUG_PRINTF(const char* format, ...) {
+    char buffer[128];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+    Serial.print(buffer);
+  }
+#else
+  #define DEBUG_PRINT(x)
+  #define DEBUG_PRINTLN(x)
+  #define DEBUG_PRINTF(...)
+#endif
+
+// Macros de conversion
+#define PPM_TO_PERCENT(ppm, max)  ((ppm * 100.0) / max)
+#define PERCENT_TO_PPM(pct, max)  ((pct * max) / 100.0)
+
+// Macros de limitation
+#define CONSTRAIN_FLOAT(x, min, max)  ((x) < (min) ? (min) : ((x) > (max) ? (max) : (x)))
+
+// ============================================
+// CARACTÈRES PERSONNALISÉS LCD
+// ============================================
+// Symbole degré (°)
+const uint8_t CHAR_DEGREE[8] = {
+  0b00110,
+  0b01001,
+  0b01001,
+  0b00110,
+  0b00000,
+  0b00000,
+  0b00000,
+  0b00000
+};
+
+// Symbole alerte (!)
+const uint8_t CHAR_ALERT[8] = {
+  0b00100,
+  0b00100,
+  0b00100,
+  0b00100,
+  0b00100,
+  0b00000,
+  0b00100,
+  0b00000
+};
+
+// Symbole batterie
+const uint8_t CHAR_BATTERY[8] = {
+  0b01110,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b00000
+};
+
+// ============================================
+// NOTES IMPORTANTES
+// ============================================
+/*
+ * PRIORITÉ SÉCURITÉ :
+ * - Les alertes CO et GPL sont prioritaires sur tout le reste
+ * - Le système d'alerte bloque la navigation en cas de danger
+ * - Le buzzer est continu pour les alertes CRITICAL
+ * 
+ * INTERVALLES :
+ * - Les capteurs de gaz (MQ7/MQ2) nécessitent un pré-chauffage
+ * - Les intervalles sont optimisés pour la réactivité et l'économie d'énergie
+ * 
+ * PERSONNALISATION :
+ * - Tous les seuils peuvent être ajustés selon vos besoins
+ * - Les intervalles peuvent être modifiés pour plus/moins de réactivité
+ */
 
 #endif // CONFIG_H
