@@ -32,3 +32,20 @@ logs/
 # Secrets (si utilisation future WiFi/API)
 secrets.h
 credentials.h
+
+# KiCad backups & autosave
+*-backups/
+*.kicad_prl
+*.tmp
+*~ 
+*.bak
+
+# Exports / fabrication outputs
+hardware/schematics/**/exports/
+hardware/pcb/**/exports/
+*.pdf
+*.svg
+*.png
+*.ps
+*.zip
+*.tar.gz
