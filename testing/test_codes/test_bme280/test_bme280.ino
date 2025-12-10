@@ -73,7 +73,7 @@ void setup() {
   
   // Initialiser capteur
   Serial.print(F("Initialisation BME280 (adresse 0x"));
-  Serial.print(BME280_ADDRESS, HEX);
+  Serial.print(BME280_I2C_ADDR, HEX);
   Serial.println(F(")..."));
   Serial.println();
   

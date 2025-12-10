@@ -6,8 +6,8 @@
 	(paper "A4")
 	(title_block
 		(title "Van Onboard Computer")
-		(date "2025-11-30")
-		(rev "1.0")
+		(date "2025-12-02")
+		(rev "1.1")
 	)
 	(lib_symbols
 		(symbol "Connector_Generic:Conn_01x03"
@@ -1131,7 +1131,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical"
 			(at 63.5 40.64 0)
 			(effects
 				(font
@@ -1206,7 +1206,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical"
 			(at 63.5 59.69 0)
 			(effects
 				(font
@@ -1234,16 +1234,16 @@
 			)
 		)
 		(pin "2"
-			(uuid "c1f832ae-f908-4e86-89f2-75569d1cf82c")
+			(uuid "c1f832ae-f908-4e86-89f2-75569d1cf82d")
 		)
 		(pin "1"
-			(uuid "e99b4e7c-7240-4ca6-aeae-9300bc9261bc")
+			(uuid "e99b4e7c-7240-4ca6-aeae-9300bc9261bd")
 		)
 		(pin "3"
-			(uuid "0cd0d643-69d2-4563-b5ca-35fe08c79182")
+			(uuid "0cd0d643-69d2-4563-b5ca-35fe08c79183")
 		)
 		(pin "4"
-			(uuid "8bf5f12f-6430-41fc-bdbf-94972fcffbb8")
+			(uuid "8bf5f12f-6430-41fc-bdbf-94972fcffbb9")
 		)
 		(instances
 			(project ""
@@ -1281,7 +1281,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
 			(at 63.5 113.03 0)
 			(effects
 				(font
@@ -1353,7 +1353,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
 			(at 63.5 96.52 0)
 			(effects
 				(font
@@ -1425,7 +1425,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
 			(at 63.5 80.01 0)
 			(effects
 				(font
@@ -1453,13 +1453,13 @@
 			)
 		)
 		(pin "2"
-			(uuid "55ecd0f7-7037-4c00-98f8-53ea64f0d225")
+			(uuid "55ecd0f7-7037-4c00-98f8-53ea64f0d226")
 		)
 		(pin "1"
-			(uuid "9cd75a28-3322-4e11-bbd3-409c4d825e28")
+			(uuid "9cd75a28-3322-4e11-bbd3-409c4d825e29")
 		)
 		(pin "3"
-			(uuid "f3685932-2a98-426b-8da8-697604ebad6d")
+			(uuid "f3685932-2a98-426b-8da8-697604ebad6e")
 		)
 		(instances
 			(project ""

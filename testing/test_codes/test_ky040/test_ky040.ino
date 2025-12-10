@@ -24,9 +24,9 @@
 // ============================================
 // CONFIGURATION
 // ============================================
-#define ENCODER_CLK   18      ///< Broche CLK (sortie A)
-#define ENCODER_DT    19      ///< Broche DT (sortie B)
-#define ENCODER_SW    21      ///< Broche SW (bouton)
+#define ENCODER_CLK   2      ///< Broche CLK (sortie A)
+#define ENCODER_DT    3      ///< Broche DT (sortie B)
+#define ENCODER_SW    4      ///< Broche SW (bouton)
 #define SERIAL_BAUD   115200  ///< Vitesse série
 
 // ============================================

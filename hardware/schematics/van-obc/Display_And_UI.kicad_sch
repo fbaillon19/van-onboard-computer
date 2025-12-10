@@ -6,14 +6,11 @@
 	(paper "A4")
 	(title_block
 		(title "Van Onboard Computer")
-		(date "2025-11-30")
-		(rev "1.0")
+		(date "2025-12-02")
+		(rev "1.1")
 	)
 	(lib_symbols
 		(symbol "Connector_Generic:Conn_01x02"
-			(pin_numbers
-				(hide yes)
-			)
 			(pin_names
 				(offset 1.016)
 				(hide yes)
@@ -156,9 +153,6 @@
 			(embedded_fonts no)
 		)
 		(symbol "Connector_Generic:Conn_01x03"
-			(pin_numbers
-				(hide yes)
-			)
 			(pin_names
 				(offset 1.016)
 				(hide yes)
@@ -330,9 +324,6 @@
 			(embedded_fonts no)
 		)
 		(symbol "Connector_Generic:Conn_01x04"
-			(pin_numbers
-				(hide yes)
-			)
 			(pin_names
 				(offset 1.016)
 				(hide yes)
@@ -533,9 +524,6 @@
 			(embedded_fonts no)
 		)
 		(symbol "Connector_Generic:Conn_01x05"
-			(pin_numbers
-				(hide yes)
-			)
 			(pin_names
 				(offset 1.016)
 				(hide yes)
@@ -1049,7 +1037,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Transistor_BJT:BC107"
+		(symbol "Transistor_BJT:PN2222A"
 			(pin_names
 				(offset 0)
 				(hide yes)
@@ -1066,7 +1054,7 @@
 					(justify left)
 				)
 			)
-			(property "Value" "BC107"
+			(property "Value" "PN2222A"
 				(at 5.08 0 0)
 				(effects
 					(font
@@ -1075,7 +1063,7 @@
 					(justify left)
 				)
 			)
-			(property "Footprint" "Package_TO_SOT_THT:TO-18-3"
+			(property "Footprint" "Package_TO_SOT_THT:TO-92_Inline"
 				(at 5.08 -1.905 0)
 				(effects
 					(font
@@ -1086,7 +1074,7 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" "http://www.b-kainka.de/Daten/Transistor/BC108.pdf"
+			(property "Datasheet" "https://www.onsemi.com/pub/Collateral/PN2222-D.PDF"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1096,7 +1084,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "0.1A Ic, 50V Vce, Low Noise General Purpose NPN Transistor, TO-18"
+			(property "Description" "1A Ic, 40V Vce, NPN Transistor, General Purpose Transistor, TO-92"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1105,7 +1093,7 @@
 					(hide yes)
 				)
 			)
-			(property "ki_keywords" "NPN low noise transistor"
+			(property "ki_keywords" "NPN Transistor"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1114,7 +1102,7 @@
 					(hide yes)
 				)
 			)
-			(property "ki_fp_filters" "TO?18*"
+			(property "ki_fp_filters" "TO?92*"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1123,7 +1111,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "BC107_0_1"
+			(symbol "PN2222A_0_1"
 				(polyline
 					(pts
 						(xy -2.54 0) (xy 0.635 0)
@@ -1160,7 +1148,7 @@
 					)
 				)
 			)
-			(symbol "BC107_1_1"
+			(symbol "PN2222A_1_1"
 				(polyline
 					(pts
 						(xy 0.635 0.635) (xy 2.54 2.54)
@@ -1968,7 +1956,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
 			(at 59.69 97.79 0)
 			(effects
 				(font
@@ -2039,7 +2027,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical"
 			(at 59.69 40.64 0)
 			(effects
 				(font
@@ -2113,7 +2101,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
 			(at 59.69 74.93 0)
 			(effects
 				(font
@@ -2181,7 +2169,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal"
 			(at 96.52 84.328 90)
 			(effects
 				(font
@@ -2251,7 +2239,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_THT:CP_Radial_D8.0mm_P3.50mm"
 			(at 75.8952 90.17 0)
 			(effects
 				(font
@@ -2320,7 +2308,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal"
 			(at 99.06 102.108 90)
 			(effects
 				(font
@@ -2388,7 +2376,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical"
 			(at 59.69 59.69 0)
 			(effects
 				(font
@@ -2440,7 +2428,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Transistor_BJT:BC107")
+		(lib_id "Transistor_BJT:PN2222A")
 		(at 85.09 82.55 0)
 		(mirror y)
 		(unit 1)
@@ -2458,7 +2446,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "BC107"
+		(property "Value" "PN2222"
 			(at 80.01 83.8199 0)
 			(effects
 				(font
@@ -2467,7 +2455,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_TO_SOT_THT:TO-18-3"
+		(property "Footprint" "Package_TO_SOT_THT:TO-92_Inline"
 			(at 80.01 84.455 0)
 			(effects
 				(font
@@ -2478,7 +2466,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "http://www.b-kainka.de/Daten/Transistor/BC108.pdf"
+		(property "Datasheet" "https://www.onsemi.com/pub/Collateral/PN2222-D.PDF"
 			(at 85.09 82.55 0)
 			(effects
 				(font
@@ -2488,7 +2476,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "0.1A Ic, 50V Vce, Low Noise General Purpose NPN Transistor, TO-18"
+		(property "Description" "1A Ic, 40V Vce, NPN Transistor, General Purpose Transistor, TO-92"
 			(at 85.09 82.55 0)
 			(effects
 				(font

@@ -23,7 +23,7 @@
 // ============================================
 // CONFIGURATION
 // ============================================
-#define DS18B20_PIN       4           ///< Broche OneWire (à adapter)
+#define DS18B20_PIN       22          ///< Broche OneWire (à adapter)
 #define SERIAL_BAUD       115200      ///< Vitesse série
 #define UPDATE_INTERVAL   2000        ///< Intervalle de mise à jour (ms)
 

@@ -1,28 +1,42 @@
 /**
  * @file KY040Encoder.h
- * @brief Classe de gestion de l'encodeur rotatif KY040
+ * @brief Classe de gestion de l'encodeur rotatif KY040 avec librairie Encoder
  * @author Frédéric BAILLON
- * @version 1.0.0
- * @date 2024-11-21
+ * @version 3.0.0 - Utilisation de la librairie Encoder de Paul Stoffregen
+ * @date 2024-12-05
  * 
  * @details
- * Utilisable dans le programme de test et le programme principal.
+ * VERSION ULTRA-FIABLE basée sur la librairie Encoder de Paul Stoffregen.
+ * Cette librairie est la référence dans l'Arduino pour les encodeurs rotatifs.
  * 
- * Principes de conception :
- * - Gestion des rotations (CW/CCW) et du bouton poussoir
- * - Détection des changements avec debouncing
- * - Responsabilité unique : lire et traiter événements encodeur
+ * IMPORTANT:
+ * - Nécessite l'installation de la librairie "Encoder" par Paul Stoffregen
+ * - Dans l'IDE Arduino : Croquis > Inclure une bibliothèque > Gérer les bibliothèques
+ * - Chercher "Encoder" et installer celle de Paul Stoffregen
+ * Ajoutez des condensateurs céramiques 0.1µF (100nF) entre :
+ * CLK ---||--- GND et DT ---||--- GND
+ * Pour filtrer le bruit électrique à la source.
+ * 
+ * Avantages:
+ * - Code ultra-optimisé en assembleur pour de nombreuses plateformes
+ * - Gestion complète de la quadrature (4 états par détente)
+ * - Élimine presque tous les glitches
+ * - Utilisée par des milliers de projets Arduino
+ * 
+ * Note: La librairie Encoder ne gère que la rotation, pas le bouton.
+ * Le bouton est géré par notre classe KY040Encoder.
  */
 
 #ifndef KY040_ENCODER_H
 #define KY040_ENCODER_H
 
 #include <Arduino.h>
+#include <Encoder.h>  // Librairie de Paul Stoffregen
 
 // ============================================
 // CONFIGURATION
 // ============================================
-#define KY040_DEBOUNCE_DELAY    5     ///< Délai anti-rebond rotation (ms)
+#define KY040_ENCODER_DIVISOR   4     ///< Diviseur pour 1 clic = 1 position (mettre à 2 ou 1 si besoin)
 #define KY040_BUTTON_DEBOUNCE   50    ///< Délai anti-rebond bouton (ms)
 #define KY040_LONG_PRESS_TIME   1000  ///< Durée appui long (ms)
 
@@ -72,21 +86,24 @@ struct EncoderData {
  * 
  * Cette classe gère un encodeur rotatif avec bouton poussoir intégré.
  * Elle détecte les rotations (CW/CCW) et les événements bouton.
+ * 
+ * NOUVEAU: Utilise la librairie Encoder de Paul Stoffregen pour une fiabilité maximale.
  */
 class KY040Encoder {
 private:
+  // Librairie Encoder (gestion de la rotation)
+  Encoder* encoder;             ///< Pointeur vers l'objet Encoder
+  
   // Pins
   uint8_t pinCLK;               ///< Broche CLK (sortie A)
   uint8_t pinDT;                ///< Broche DT (sortie B)
   uint8_t pinSW;                ///< Broche SW (bouton)
   
   // État rotation
-  int32_t position;             ///< Position courante
-  volatile uint8_t lastStateCLK;     ///< Dernier état CLK
-  volatile uint8_t lastStateDT;      ///< Dernier état DT
-  volatile bool rotationDetected;    ///< Flag rotation détectée
-  volatile RotationDirection lastDirection;  ///< Dernière direction
-  unsigned long lastRotationTime;    ///< Timestamp dernière rotation
+  int32_t position;             ///< Position courante (divisée)
+  int32_t lastRawPosition;      ///< Dernière position brute (avant division)
+  bool rotationDetected;        ///< Flag rotation détectée
+  RotationDirection lastDirection;  ///< Dernière direction
   
   // État bouton
   bool buttonState;             ///< État actuel du bouton
@@ -104,47 +121,44 @@ private:
   bool limitEnabled;            ///< Activer limites position
   
   /**
-   * @brief Lit l'état actuel des pins CLK et DT
+   * @brief Lit la position de l'encodeur et détecte les changements
    */
-  void readEncoderState() {
-    uint8_t clkState = digitalRead(pinCLK);
-    uint8_t dtState = digitalRead(pinDT);
+  void readEncoderPosition() {
+    if (!encoder) return;
     
-    // Détection de rotation (transition sur CLK)
-    if (clkState != lastStateCLK) {
-      unsigned long now = millis();
-      
-      // Anti-rebond
-      if (now - lastRotationTime >= KY040_DEBOUNCE_DELAY) {
-        lastRotationTime = now;
-        
-        // Déterminer direction
-        if (clkState != dtState) {
-          // Rotation horaire
-          lastDirection = reverseDirection ? 
-            RotationDirection::COUNTER_CLOCKWISE : 
-            RotationDirection::CLOCKWISE;
-          
-          if (!limitEnabled || position < maxPosition) {
-            position++;
-          }
-        } else {
-          // Rotation anti-horaire
-          lastDirection = reverseDirection ? 
-            RotationDirection::CLOCKWISE : 
-            RotationDirection::COUNTER_CLOCKWISE;
-          
-          if (!limitEnabled || position > minPosition) {
-            position--;
-          }
-        }
-        
-        rotationDetected = true;
+    // Lire position brute de la librairie Encoder
+    int32_t rawPosition = encoder->read();
+    
+    // Diviser pour obtenir 1 clic = 1 position
+    int32_t newPosition = rawPosition / KY040_ENCODER_DIVISOR;
+    
+    // Vérifier si la position a changé
+    if (newPosition != position) {
+      // Déterminer direction
+      if (newPosition > position) {
+        lastDirection = reverseDirection ? 
+          RotationDirection::COUNTER_CLOCKWISE : 
+          RotationDirection::CLOCKWISE;
+      } else {
+        lastDirection = reverseDirection ? 
+          RotationDirection::CLOCKWISE : 
+          RotationDirection::COUNTER_CLOCKWISE;
       }
+      
+      // Appliquer limites si activées
+      if (limitEnabled) {
+        if (newPosition < minPosition) {
+          newPosition = minPosition;
+          encoder->write(newPosition * KY040_ENCODER_DIVISOR);
+        } else if (newPosition > maxPosition) {
+          newPosition = maxPosition;
+          encoder->write(newPosition * KY040_ENCODER_DIVISOR);
+        }
+      }
+      
+      position = newPosition;
+      rotationDetected = true;
     }
-    
-    lastStateCLK = clkState;
-    lastStateDT = dtState;
   }
   
   /**
@@ -193,20 +207,21 @@ private:
 public:
   /**
    * @brief Constructeur
-   * @param clk Broche CLK (sortie A)
-   * @param dt Broche DT (sortie B)
+   * @param clk Broche CLK (sortie A) - DOIT être sur une broche d'interruption
+   * @param dt Broche DT (sortie B) - DOIT être sur une broche d'interruption
    * @param sw Broche SW (bouton)
+   * 
+   * @warning Sur Arduino Mega, les broches d'interruption sont : 2, 3, 18, 19, 20, 21
    */
   KY040Encoder(uint8_t clk, uint8_t dt, uint8_t sw)
-    : pinCLK(clk),
+    : encoder(nullptr),
+      pinCLK(clk),
       pinDT(dt),
       pinSW(sw),
       position(0),
-      lastStateCLK(HIGH),
-      lastStateDT(HIGH),
+      lastRawPosition(0),
       rotationDetected(false),
       lastDirection(RotationDirection::NONE),
-      lastRotationTime(0),
       buttonState(false),
       lastButtonState(false),
       lastButtonChange(0),
@@ -219,22 +234,28 @@ public:
       maxPosition(INT32_MAX),
       limitEnabled(false)
   {}
+  
+  /**
+   * @brief Destructeur
+   */
+  ~KY040Encoder() {
+    if (encoder) delete encoder;
+  }
 
   // INITIALISATION
   // ------------------------------------------
   /**
-   * @brief Initialise l'encodeur
+   * @brief Initialise l'encodeur avec la librairie Encoder
    * @return true si succès
    */
   bool begin() {
-    // Configuration des pins
-    pinMode(pinCLK, INPUT_PULLUP);
-    pinMode(pinDT, INPUT_PULLUP);
-    pinMode(pinSW, INPUT_PULLUP);
+    // Créer l'objet Encoder (gère automatiquement les interruptions)
+    encoder = new Encoder(pinCLK, pinDT);
     
-    // Lecture état initial
-    lastStateCLK = digitalRead(pinCLK);
-    lastStateDT = digitalRead(pinDT);
+    if (!encoder) return false;
+    
+    // Configuration du bouton
+    pinMode(pinSW, INPUT_PULLUP);
     buttonState = digitalRead(pinSW) == LOW;
     
     initialized = true;
@@ -246,13 +267,14 @@ public:
   /**
    * @brief Met à jour l'état de l'encodeur
    * 
-   * @details À appeler dans loop() aussi souvent que possible
-   * pour détecter les rotations et événements bouton.
+   * @details 
+   * La rotation est gérée automatiquement par la librairie Encoder.
+   * Cette fonction lit la position et gère le bouton.
    */
   void update() {
     if (!initialized) return;
     
-    readEncoderState();
+    readEncoderPosition();
     processButton();
   }
 
@@ -270,13 +292,16 @@ public:
    */
   void setPosition(int32_t pos) {
     position = pos;
+    if (encoder) {
+      encoder->write(pos * KY040_ENCODER_DIVISOR);
+    }
   }
 
   /**
    * @brief Réinitialise la position à zéro
    */
   void resetPosition() {
-    position = 0;
+    setPosition(0);
   }
 
   /**
@@ -348,8 +373,8 @@ public:
     limitEnabled = true;
     
     // Ajuster position si hors limites
-    if (position < minPosition) position = minPosition;
-    if (position > maxPosition) position = maxPosition;
+    if (position < minPosition) setPosition(minPosition);
+    if (position > maxPosition) setPosition(maxPosition);
   }
 
   /**

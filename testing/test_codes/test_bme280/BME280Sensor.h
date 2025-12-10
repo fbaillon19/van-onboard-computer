@@ -2,8 +2,8 @@
  * @file BME280Sensor.h
  * @brief Classe de gestion du capteur BME280 (température + humidité + pression)
  * @author Frédéric BAILLON
- * @version 1.0.0
- * @date 2024-11-21
+ * @version 1.0.1 - FIX: Ajout de &Wire dans begin()
+ * @date 2024-12-05
  * 
  * @details
  * Classe découplée pour le capteur environnemental BME280 de Bosch.
@@ -16,6 +16,10 @@
  * 
  * @note Compatible I2C (adresse 0x76 ou 0x77 selon module)
  * @warning Vérifier l'adresse I2C de votre module avant utilisation
+ * 
+ * CORRECTION v1.0.1:
+ * - Ajout du paramètre &Wire dans bme.begin() pour compatibilité avec Adafruit_BME280
+ * - Ajout d'un délai après Wire.begin() pour stabilité
  */
 
 #ifndef BME280_SENSOR_H
@@ -102,6 +106,31 @@ private:
   uint8_t i2cAddress;             ///< Adresse I2C du capteur
   float seaLevelPressure;         ///< Pression niveau mer pour calcul altitude
   
+  /**
+   * @brief Lit les données du capteur
+   * @return true si lecture réussie
+   */
+  bool readSensor() {
+    // Lire capteur
+    currentData.temperature = bme.readTemperature();
+    currentData.humidity = bme.readHumidity();
+    currentData.pressure = bme.readPressure() / 100.0F; // Pa vers hPa
+    currentData.altitude = bme.readAltitude(seaLevelPressure);
+    currentData.timestamp = millis();
+    
+    lastUpdate = currentData.timestamp;
+    
+    // Vérifier si les valeurs sont valides
+    if (isnan(currentData.temperature) || 
+        isnan(currentData.humidity) || 
+        isnan(currentData.pressure)) {
+      status = BME280Status::ERROR_COMM;
+      return false;
+    }
+    
+    return true;
+  }
+  
 public:
   /**
    * @brief Constructeur
@@ -130,8 +159,13 @@ public:
    * - Vérifie la présence du capteur sur le bus I2C
    * - Configure les paramètres de mesure
    * - Active le mode normal
+   * 
+   * CORRECTION: Ajout du paramètre &Wire pour compatibilité
    */
   bool begin() {
+    // Petite pause pour stabilité (certains modules ont besoin de temps)
+    delay(10);
+    
     // Vérifier présence I2C
     Wire.beginTransmission(i2cAddress);
     if (Wire.endTransmission() != 0) {
@@ -139,11 +173,15 @@ public:
       return false;
     }
     
-    // Initialiser avec adresse spécifique
-    if (!bme.begin(i2cAddress)) {
+    // Initialiser avec adresse spécifique ET pointeur Wire
+    // IMPORTANT: La librairie Adafruit_BME280 nécessite &Wire en paramètre
+    if (!bme.begin(i2cAddress, &Wire)) {
       status = BME280Status::ERROR_NOT_FOUND;
       return false;
     }
+    
+    // Petite pause après initialisation
+    delay(10);
     
     // Configuration recommandée pour usage général
     bme.setSampling(Adafruit_BME280::MODE_NORMAL,     // Mode continu
@@ -156,6 +194,7 @@ public:
     status = BME280Status::READY;
     
     // Première lecture pour remplir les données
+    delay(50);  // Attendre que le capteur soit prêt
     forceUpdate();
     
     return true;
@@ -168,7 +207,8 @@ public:
    * @return true si mise à jour effectuée, false si intervalle non écoulé
    * 
    * @details
-   * Méthode non-bloquante. Retourne false si appelée trop tôt.
+   * Méthode non-bloquante.
+   * Retourne false si appelée trop tôt.
    * À appeler régulièrement dans loop().
    */
   bool update() {
@@ -191,7 +231,6 @@ public:
    */
   bool forceUpdate() {
     if (status != BME280Status::READY) return false;
-    lastUpdate = 0; // Reset timer
     return readSensor();
   }
 
@@ -254,6 +293,36 @@ public:
     return currentData.altitude; 
   }
 
+  // CONFIGURATION
+  // ------------------------------------------
+  /**
+   * @brief Définit l'intervalle entre lectures
+   * @param interval Intervalle en millisecondes
+   */
+  void setSampleInterval(uint16_t interval) {
+    sampleInterval = interval;
+  }
+
+  /**
+   * @brief Définit la pression au niveau de la mer
+   * @param pressure Pression en hPa (défaut: 1013.25)
+   * 
+   * @details
+   * Ajuster cette valeur selon la météo locale pour une meilleure 
+   * précision de l'altitude. Consulter météo locale.
+   */
+  void setSeaLevelPressure(float pressure) {
+    seaLevelPressure = pressure;
+  }
+
+  /**
+   * @brief Retourne la pression au niveau de la mer configurée
+   * @return Pression en hPa
+   */
+  float getSeaLevelPressure() const {
+    return seaLevelPressure;
+  }
+
   // DÉTECTION SEUILS
   // ------------------------------------------
   /**
@@ -291,106 +360,58 @@ public:
    * Température à laquelle l'air doit être refroidi pour atteindre 
    * la saturation (condensation).
    * Formule Magnus-Tetens simplifiée.
+   * 
+   * Utile pour détecter risques de condensation/moisissures.
    */
   float getDewPoint() const {
-    float t = currentData.temperature;
-    float h = currentData.humidity;
-    
-    // Formule Magnus-Tetens
     float a = 17.27;
     float b = 237.7;
-    float alpha = ((a * t) / (b + t)) + log(h / 100.0);
+    float alpha = ((a * currentData.temperature) / (b + currentData.temperature)) + 
+                  log(currentData.humidity / 100.0);
     float dewPoint = (b * alpha) / (a - alpha);
-    
     return dewPoint;
   }
 
   /**
-   * @brief Calcule le risque de condensation
-   * @param surfaceTemp Température de surface en °C
+   * @brief Vérifie le risque de condensation
+   * @param surfaceTemp Température de la surface en °C
    * @return true si risque de condensation
    * 
    * @details
-   * Compare le point de rosée à la température de surface.
-   * Risque si point de rosée > température surface.
+   * Compare le point de rosée avec la température d'une surface.
+   * Si la surface est plus froide que le point de rosée, 
+   * il y a risque de condensation.
+   * 
+   * Exemple: paroi froide d'un van, fenêtre, etc.
    */
   bool hasCondensationRisk(float surfaceTemp) const {
     return getDewPoint() > surfaceTemp;
   }
 
-  // CONFIGURATION
-  // ------------------------------------------
   /**
-   * @brief Change l'intervalle de lecture
-   * @param interval Nouvel intervalle en ms
-   */
-  void setSampleInterval(uint16_t interval) {
-    sampleInterval = interval;
-  }
-
-  /**
-   * @brief Récupère l'intervalle de lecture
-   * @return Intervalle en ms
-   */
-  uint16_t getSampleInterval() const {
-    return sampleInterval;
-  }
-
-  /**
-   * @brief Définit la pression au niveau de la mer
-   * @param pressure Pression en hPa
+   * @brief Calcule l'index de chaleur (heat index)
+   * @return Index de chaleur en °C
    * 
    * @details
-   * Utilisé pour le calcul d'altitude. À ajuster selon conditions météo.
-   * Valeur standard : 1013.25 hPa
+   * Température "ressentie" tenant compte de l'humidité.
+   * Valide pour température > 27°C et humidité > 40%.
    */
-  void setSeaLevelPressure(float pressure) {
-    seaLevelPressure = pressure;
-  }
-
-  /**
-   * @brief Récupère la pression niveau mer configurée
-   * @return Pression en hPa
-   */
-  float getSeaLevelPressure() const {
-    return seaLevelPressure;
-  }
-
-  /**
-   * @brief Récupère l'adresse I2C du capteur
-   * @return Adresse I2C (0x76 ou 0x77)
-   */
-  uint8_t getI2CAddress() const {
-    return i2cAddress;
-  }
-
-private:
-  /**
-   * @brief Lit les données du capteur
-   * @return true si succès
-   */
-  bool readSensor() {
-    lastUpdate = millis();
+  float getHeatIndex() const {
+    float T = currentData.temperature;
+    float RH = currentData.humidity;
     
-    // Lire toutes les valeurs
-    currentData.temperature = bme.readTemperature();
-    currentData.humidity = bme.readHumidity();
-    currentData.pressure = bme.readPressure() / 100.0F; // Pa → hPa
+    // Formule simplifiée Rothfusz
+    float HI = -8.78469475556 + 
+                1.61139411 * T + 
+                2.33854883889 * RH + 
+               -0.14611605 * T * RH + 
+               -0.012308094 * T * T + 
+               -0.0164248277778 * RH * RH + 
+                0.002211732 * T * T * RH + 
+                0.00072546 * T * RH * RH + 
+               -0.000003582 * T * T * RH * RH;
     
-    // Calculer altitude basée sur pression
-    currentData.altitude = bme.readAltitude(seaLevelPressure);
-    
-    currentData.timestamp = lastUpdate;
-    
-    // Vérifier valeurs valides (NaN = erreur lecture)
-    if (isnan(currentData.temperature) || 
-        isnan(currentData.humidity) || 
-        isnan(currentData.pressure)) {
-      status = BME280Status::ERROR_COMM;
-      return false;
-    }
-    
-    return true;
+    return HI;
   }
 };
 

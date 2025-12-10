@@ -30,15 +30,17 @@ docs/**/*.tmp
 logs/
 
 # Secrets (si utilisation future WiFi/API)
-secrets.h
-credentials.h
+firmware/van-onboard-computer/secrets.h
+firmware/van-onboard-computer/credentials.h
 
 # KiCad backups & autosave
-*-backups/
-*.kicad_prl
-*.tmp
-*~ 
-*.bak
+hardware/schematics/van-obc/*-backups/
+hardware/schematics/van-obc/*.kicad_prl
+hardware/schematics/van-obc/*.tmp
+hardware/schematics/van-obc/*~ 
+hardware/schematics/van-obc/*.bak
+hardware/schematics/van-obc/*.rpt
+hardware/schematics/van-obc/fp-info-cache
 
 # Exports / fabrication outputs
 hardware/schematics/**/exports/
