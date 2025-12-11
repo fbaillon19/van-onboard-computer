@@ -18,7 +18,7 @@
 // ============================================
 // CONFIGURATION MATÉRIELLE
 // ============================================
-#define BUZZER_PIN 25        ///< Broche GPIO du buzzer (à adapter)
+#define BUZZER_PIN 11        ///< Broche GPIO du buzzer (à adapter)
 
 // ============================================
 // TYPES ET STRUCTURES
@@ -86,7 +86,7 @@ public:
     void tone(uint16_t frequency, uint32_t duration = 0) {
         if (!initialized) return;
     
-        tone(pin, frequency);
+        ::tone(pin, frequency);
     
         if (duration > 0) {
             startTime = millis();
@@ -103,7 +103,7 @@ public:
     void stop() {
         if (!initialized) return;
     
-        noTone(pin);
+        ::noTone(pin);
         duration = 0;
     }
 

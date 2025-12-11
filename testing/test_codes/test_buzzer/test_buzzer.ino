@@ -112,12 +112,6 @@ void handleCommand(char cmd) {
             testAlarme();
             break;
         case '6':
-            testGamme();
-            break;
-        case '7':
-            testMelodie();
-            break;
-        case '8':
             arreterSon();
             break;
         default:
@@ -143,9 +137,7 @@ void printMenu() {
     Serial.println(F("3. Test bip simple"));
     Serial.println(F("4. Test double-bip"));
     Serial.println(F("5. Test alarme"));
-    Serial.println(F("6. Test gamme musicale"));
-    Serial.println(F("7. Test mélodique simple"));
-    Serial.println(F("8. Arrêter le son"));
+    Serial.println(F("6. Arrêter le son"));
     Serial.println(F("----------------------------------------"));
     Serial.println(F("Tapez le numéro du test à exécuter..."));
     Serial.println();
@@ -233,57 +225,6 @@ void testAlarme() {
     Serial.println(F("✓ Test terminé"));
 }
 
-/**
- * @brief Test de la gamme musicale
- */
-void testGamme() {
-    Serial.println();
-    Serial.println(F("=== Test 6 : Gamme musicale (Do à Do) ==="));
-    
-    uint16_t notes[] = {NOTE_C4, NOTE_D4, NOTE_E4, NOTE_F4, NOTE_G4, NOTE_A4, NOTE_B4, NOTE_C5};
-    const char* noteNames[] = {"Do", "Ré", "Mi", "Fa", "Sol", "La", "Si", "Do"};
-    
-    for (int i = 0; i < 8; i++) {
-        Serial.print(noteNames[i]);
-        Serial.print(F(" ("));
-        Serial.print(notes[i]);
-        Serial.println(F(" Hz)"));
-        
-        buzzer.tone(notes[i], 400);
-        delay(500);
-        buzzer.stop();
-    }
-    
-    Serial.println(F("✓ Test terminé"));
-}
-
-/**
- * @brief Test avec une mélodie simple
- */
-void testMelodie() {
-    Serial.println();
-    Serial.println(F("=== Test 7 : Mélodie simple ==="));
-    Serial.println(F("'Frère Jacques' (2 premières phrases)"));
-    
-    // Notes de "Frère Jacques"
-    uint16_t melody[] = {
-        NOTE_C4, NOTE_D4, NOTE_E4, NOTE_C4,  // Frère Jacques
-        NOTE_C4, NOTE_D4, NOTE_E4, NOTE_C4,  // Frère Jacques
-    };
-    
-    uint16_t durations[] = {
-        400, 400, 400, 400,
-        400, 400, 400, 400
-    };
-    
-    for (int i = 0; i < 8; i++) {
-        buzzer.tone(melody[i], durations[i]);
-        delay(durations[i] + 50);
-        buzzer.stop();
-    }
-    
-    Serial.println(F("✓ Test terminé"));
-}
 
 // ============================================
 // FONCTIONS UTILITAIRES
